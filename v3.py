@@ -56,20 +56,37 @@ colors = {
     risk_items[8]: "beige"
 }
 
+
 # 各リスク項目ごとにフィルタリングしてマーカーを作成
 for item in risk_items:
     group = FeatureGroup(name=item, show=False)
     for index, row in display_data.iterrows():
         # マーカーの色を設定
         marker_color = colors[item] if row[item] == 1 else 'lightgray'
+
+        # Googleマップへのリンクを作成
+        google_maps_url = f"https://www.google.com/maps?q={row['緯度']},{row['経度']}"
+
         # 緯度経度を除いたポップアップ情報
         popup_info = "<br>".join([f"{col}: {data.iloc[index][col]}" for col in data.columns[2:]])
-        folium.Marker(
+
+        # Googleマップリンクをポップアップに追加
+        popup_info += f"<br><a href='{google_maps_url}' target='_blank'>Google Maps</a>"
+        if  row[item] == 1:
+            folium.Marker(
             location=[row["緯度"], row["経度"]],
             popup=folium.Popup(popup_info, max_width=300),
-            icon=folium.Icon(color=marker_color)
-        ).add_to(group)
+            icon=folium.Icon(color=marker_color, icon='flag', prefix='fa')
+            ).add_to(group)
+        else:
+            folium.Marker(
+            location=[row["緯度"], row["経度"]],
+            popup=folium.Popup(popup_info, max_width=300),
+            icon=folium.Icon(color=marker_color, icon='minus', prefix='fa')
+            ).add_to(group)
     group.add_to(map)
+
+
     
 # ヒートマップレイヤー
 heat_data = [[row[0], row[1]] for index, row in data.iterrows()]
